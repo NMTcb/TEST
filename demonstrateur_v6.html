@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demonstration</title>
+    <style>
+        *{
+            box-sizing: border-box;
+            padding: 0px 10px;
+            margin: 0px;
+        }
+        
+        .lapage {
+            display: grid;
+            grid-template-rows: 80px auto 65px;
+            grid-gap: none;
+            width: 95vw;
+            height: 100vh;
+        }
+        .logo_cible{
+            height: 60px;
+            background-color: white;
+            border-radius: 15px;
+            position: absolute;
+            left: 70px;
+        }
+        .logo_cerib{
+            cursor: pointer;
+            height: 30px;
+            margin: 8px 0px 10px 0px;
+            padding-right: 20px;
+            left: 10px;
+        }
+        header{
+            grid-column-start: 1;
+            grid-column-end : span 3;
+            grid-row: 1;
+            display: flex;
+            justify-content:center;
+            align-items: center;
+            padding: 30px 10%;
+            background-color: #0069b4;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .nav_links{
+            list-style: none;
+        }
+        .nav_links li {
+            display: inline-block;
+            padding: 0px 20px;
+        }
+        .nav_links li a{
+            text-decoration: none;
+            color:white;
+            background-color: #0069b4;
+            border-radius: 15px;
+            padding: 5px 10px;
+            transition: all 0.5s ease 0s;
+        
+        }
+        .nav_links li a:hover{
+            cursor: pointer;
+            opacity: 0.7;
+            color: #0069b4;
+            background-color: white;
+            border-radius: 15px;
+            padding: 5px 10px;
+        }
+        header a button{
+            text-decoration: none;
+            color: #0069b4;
+            background-color: rgb(255, 255, 255);
+            border-radius: 15px;
+            padding: 5px 15px;
+            border: none;
+            font-weight: 500;
+            font-size: 15px;
+            margin-left: 20px;
+            position: absolute;
+            right: 70px;
+            top: 25px;
+            
+            transition: all 0.5s ease 0s;
+        }
+        a button:hover{
+            opacity: 0.7;
+            cursor: pointer;
+            border-top-right-radius: 0px;
+        }
+        
+        /*.bouton{
+            text-decoration: none;
+            color: #0069B0;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            background-image: linear-gradient(45deg, #fafafb, #fafafb);#C5E8FF
+            border-radius: 10px;
+            padding: 17.5px 40px;
+            position
+            margin-left: 20px;
+            transition: all 0.5s ease 0s;
+            top: 10px;
+        }*/
+        iframe{
+            border:none;
+            margin:none;
+            padding:0px;
+            width: 100%;
+            height: 100%;
+        }
+        main {
+            /* grid-column-start: 1; */
+            grid-column-end : span 3;
+            grid-row: 2;
+            background-color: white;
+            margin: none;
+            padding: 5px;
+        }
+        footer {
+            display: inline-flex;
+            grid-column-start: 1;
+            grid-column-end : span 3;
+            grid-row : 3;
+            background-color: #0069b4;
+            color: white;
+            font-size:10px;
+            font-family: "Lucida Grande","Lucida Sans Unicode",Verdana,sans-serif;
+            padding: 7px 15px 0px;
+        }
+        </style>
+   
+</head>
+
+<body>
+    <div class="lapage" > <!--divise la page en trois ligne-->
+        <!--première ligne-->
+        <header>
+            <img src="./Image/Logo cible GC.png" class="logo_cible">
+            <nav >
+                <ul class="nav_links">
+                    <li><a href="page_introduction_v4.html" title="Aller sur la page lexique" target="_blank">Lexique</a></li>
+                    <li><a href="Image/cible blanc + base line.png" target="_blank">Paramétrer le projet</a></li>
+                </ul>
+            </nav>
+            <a href="#"><button>Enregistrer</button></a>
+        </header>
+        <!--deuxième ligne-->
+        <main>
+            <iframe title="Main Frame" name="framePrincipal" id="iframeconteneur" src="./page_introduction_v4.html">Main Frame</iframe>
+        </main>
+        <!--troième et dernière ligne-->
+        <footer>
+            <img src="./Image/cible blanc + base line.png" class="logo_cerib">
+            <p>Calculateur d’empreinte carbone pour les produits de génie civil en béton préfabriqués / sur mesure – Version 1.0.0.<br>Outil réservé à usage interne à l'Industrie du Béton. Les résultats ne peuvent se substituer à un calcul complet d'ACV selon la norme NF EN 15804+A2/CN, pour la réalisation d'une FDES.<br>La saisie des données d'entrées du projet est de la responsabilité de l'utilisateur.</p>
+        </footer>
+    </div>
+</body>
+</html>
