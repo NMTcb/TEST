@@ -14,88 +14,89 @@
             </tr>
         </thead>
         <tbody>
-            <th>Moi</th>
-            <th>3</th>
+            <th  contenteditable="true">Moi</th>
+            <th  contenteditable="true">3</th>
         </tbody>
     </table>
-    <script src="script.js"></script>
-</body>
-</html>
-document.addEventListener('DOMContentLoaded', (event) => {
-    const table = document.getElementById('dataTable');
-    const tbody = table.querySelector('tbody');
-
-    const binId = 'https://api.jsonbin.io/v3/b/664ca084ad19ca34f86ce956';
-    const secretKey = '$2a$10$DHNAnAemgw/9O9GAoUu1D.sJe5WCn8YsoLQiyWLP1V31e2JsR8W/y';
-
-    // Fonction pour convertir le tableau HTML en objet JSON
-    function tableToJson(table) {
-        const data = [];
-        const headers = [];
-        for (let i = 0; i < table.rows[0].cells.length; i++) {
-            headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase();
-        }
-        for (let i = 1; i < table.rows.length; i++) {
-            const tableRow = table.rows[i];
-            const rowData = {};
-            for (let j = 0; j < tableRow.cells.length; j++) {
-                rowData[headers[j]] = tableRow.cells[j].innerHTML;
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const table = document.getElementById('dataTable');
+            const tbody = table.querySelector('tbody');
+        
+            const binId = 'https://api.jsonbin.io/v3/b/664ca084ad19ca34f86ce956';
+            const secretKey = '$2a$10$DHNAnAemgw/9O9GAoUu1D.sJe5WCn8YsoLQiyWLP1V31e2JsR8W/y';
+        
+            // Fonction pour convertir le tableau HTML en objet JSON
+            function tableToJson(table) {
+                const data = [];
+                const headers = [];
+                for (let i = 0; i < table.rows[0].cells.length; i++) {
+                    headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase();
+                }
+                for (let i = 1; i < table.rows.length; i++) {
+                    const tableRow = table.rows[i];
+                    const rowData = {};
+                    for (let j = 0; j < tableRow.cells.length; j++) {
+                        rowData[headers[j]] = tableRow.cells[j].innerHTML;
+                    }
+                    data.push(rowData);
+                }
+                return data;
             }
-            data.push(rowData);
-        }
-        return data;
-    }
-
-    // Fonction pour sauvegarder les données sur JSON Bin
-    function saveToJsonBin(data) {
-        fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Master-Key': secretKey
-            },
-            body: JSON.stringify({tableData: data})
-        }).then(response => response.json())
-          .then(json => console.log('Données enregistrées:', json))
-          .catch(error => console.error('Erreur:', error));
-    }
-
-    // Fonction pour charger les données depuis JSON Bin
-    function loadFromJsonBin() {
-        fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-            method: 'GET',
-            headers: {
-                'X-Master-Key': secretKey
+        
+            // Fonction pour sauvegarder les données sur JSON Bin
+            function saveToJsonBin(data) {
+                fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': secretKey
+                    },
+                    body: JSON.stringify({tableData: data})
+                }).then(response => response.json())
+                  .then(json => console.log('Données enregistrées:', json))
+                  .catch(error => console.error('Erreur:', error));
             }
-        }).then(response => response.json())
-          .then(json => {
-              const data = json.record.tableData;
-              populateTable(data);
-          })
-          .catch(error => console.error('Erreur de chargement des données:', error));
-    }
-
-    // Fonction pour remplir le tableau avec les données chargées
-    function populateTable(data) {
-        tbody.innerHTML = '';
-        data.forEach(row => {
-            const tr = document.createElement('tr');
-            Object.values(row).forEach(cellData => {
-                const td = document.createElement('td');
-                td.contentEditable = 'true';
-                td.textContent = cellData;
-                tr.appendChild(td);
+        
+            // Fonction pour charger les données depuis JSON Bin
+            function loadFromJsonBin() {
+                fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Master-Key': secretKey
+                    }
+                }).then(response => response.json())
+                  .then(json => {
+                      const data = json.record.tableData;
+                      populateTable(data);
+                  })
+                  .catch(error => console.error('Erreur de chargement des données:', error));
+            }
+        
+            // Fonction pour remplir le tableau avec les données chargées
+            function populateTable(data) {
+                tbody.innerHTML = '';
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    Object.values(row).forEach(cellData => {
+                        const td = document.createElement('td');
+                        td.contentEditable = 'true';
+                        td.textContent = cellData;
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+            }
+        
+            // Détection des modifications du tableau
+            table.addEventListener('input', () => {
+                const jsonData = tableToJson(table);
+                saveToJsonBin(jsonData);
             });
-            tbody.appendChild(tr);
+        
+            // Charger les données au chargement de la page
+            loadFromJsonBin();
         });
-    }
-
-    // Détection des modifications du tableau
-    table.addEventListener('input', () => {
-        const jsonData = tableToJson(table);
-        saveToJsonBin(jsonData);
-    });
-
-    // Charger les données au chargement de la page
-    loadFromJsonBin();
-});
+    </script>
+</body>
+</html>        
