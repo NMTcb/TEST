@@ -1,102 +1,95 @@
-<DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau avec Enregistrement Automatique</title>
+    <title>Table to JSON</title>
+    <style>
+        #jsonOutput {
+            width: 100%;
+            height: 200px;
+        }
+    </style>
 </head>
 <body>
-    <table id="dataTable" border="1">
+    <table id="myTable">
         <thead>
             <tr>
-                <th>Nom</th>
-                <th>Âge</th>
+                <th contenteditable="true">Name</th>
+                <th contenteditable="true">Age</th>
+                <th contenteditable="true">Country</th>
             </tr>
         </thead>
         <tbody>
-            <th  contenteditable="true">Moi</th>
-            <th  contenteditable="true">3</th>
+            <tr>
+                <td contenteditable="true">John Doe</td>
+                <td contenteditable="true">30</td>
+                <td contenteditable="true">USA</td>
+            </tr>
+            <tr>
+                <td contenteditable="true">Jane Smith</td>
+                <td contenteditable="true">25</td>
+                <td contenteditable="true">Canada</td>
+            </tr>
         </tbody>
     </table>
+    <button id="exportBtn">Export to JSON</button>
+    <textarea id="jsonOutput" readonly></textarea>
+
+    <br>
+    <label for="apiUrl">JSONbin.io API URL:</label>
+    <input type="text" id="apiUrl" placeholder="https://api.jsonbin.io/v3/b/6655cae7e41b4d34e4fabe6fL">
+    <br>
+    <label for="apiKey">JSONbin.io API Key:</label>
+    <input type="text" id="apiKey" placeholder="$2a$10$DHNAnAemgw/9O9GAoUu1D.sJe5WCn8YsoLQiyWLP1V31e2JsR8W/y">
+    <br>
+    <button id="uploadBtn">Upload to JSONbin.io</button>
+
     <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const table = document.getElementById('dataTable');
-            const tbody = table.querySelector('tbody');
-        
-            const binId = 'https://api.jsonbin.io/v3/b/664ca084ad19ca34f86ce956';
-            const secretKey = '$2a$10$DHNAnAemgw/9O9GAoUu1D.sJe5WCn8YsoLQiyWLP1V31e2JsR8W/y';
-        
-            // Fonction pour convertir le tableau HTML en objet JSON
-            function tableToJson(table) {
-                const data = [];
-                const headers = [];
-                for (let i = 0; i < table.rows[0].cells.length; i++) {
-                    headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase();
-                }
-                for (let i = 1; i < table.rows.length; i++) {
-                    const tableRow = table.rows[i];
-                    const rowData = {};
-                    for (let j = 0; j < tableRow.cells.length; j++) {
-                        rowData[headers[j]] = tableRow.cells[j].innerHTML;
-                    }
-                    data.push(rowData);
-                }
-                return data;
-            }
-        
-            // Fonction pour sauvegarder les données sur JSON Bin
-            function saveToJsonBin(data) {
-                fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': secretKey
-                    },
-                    body: JSON.stringify({tableData: data})
-                }).then(response => response.json())
-                  .then(json => console.log('Données enregistrées:', json))
-                  .catch(error => console.error('Erreur:', error));
-            }
-        
-            // Fonction pour charger les données depuis JSON Bin
-            function loadFromJsonBin() {
-                fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Master-Key': secretKey
-                    }
-                }).then(response => response.json())
-                  .then(json => {
-                      const data = json.record.tableData;
-                      populateTable(data);
-                  })
-                  .catch(error => console.error('Erreur de chargement des données:', error));
-            }
-        
-            // Fonction pour remplir le tableau avec les données chargées
-            function populateTable(data) {
-                tbody.innerHTML = '';
-                data.forEach(row => {
-                    const tr = document.createElement('tr');
-                    Object.values(row).forEach(cellData => {
-                        const td = document.createElement('td');
-                        td.contentEditable = 'true';
-                        td.textContent = cellData;
-                        tr.appendChild(td);
-                    });
-                    tbody.appendChild(tr);
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const table = document.getElementById('myTable');
+            const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => {
+                const cells = Array.from(tr.querySelectorAll('td'));
+                const rowData = {};
+                cells.forEach((cell, index) => {
+                    rowData[headers[index]] = cell.textContent;
                 });
-            }
-        
-            // Détection des modifications du tableau
-            table.addEventListener('input', () => {
-                const jsonData = tableToJson(table);
-                saveToJsonBin(jsonData);
+                return rowData;
             });
-        
-            // Charger les données au chargement de la page
-            loadFromJsonBin();
+
+            const jsonString = JSON.stringify(rows, null, 2);
+            document.getElementById('jsonOutput').value = jsonString;
+        });
+
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const jsonData = document.getElementById('jsonOutput').value;
+
+            if (!apiUrl || !apiKey) {
+                alert('https://api.jsonbin.io/v3/b/6655cae7e41b4d34e4fabe6fL || $2a$10$DHNAnAemgw/9O9GAoUu1D.sJe5WCn8YsoLQiyWLP1V31e2JsR8W/y.');
+                return;
+            }
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': apiKey
+                },
+                body: jsonData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                alert('Data successfully uploaded to JSONbin.io');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while uploading the data.');
+            });
         });
     </script>
 </body>
-</html>        
+</html>
