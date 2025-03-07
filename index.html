@@ -1,4 +1,4 @@
-<DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -14,37 +14,45 @@
             </tr>
         </thead>
         <tbody>
-            <th  contenteditable="true">Moi</th>
-            <th  contenteditable="true">3</th>
+            <tr>
+                <td contenteditable="true">Moi</td>
+                <td contenteditable="true">3</td>
+            </tr>
         </tbody>
     </table>
+
     <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
+        document.addEventListener('DOMContentLoaded', () => {
             const table = document.getElementById('dataTable');
             const tbody = table.querySelector('tbody');
-        
-            const binId = '67cafb77e41b4d34e4a26a54'; 
-            const secretKey = '$2a$10$tUTBEySt/KWiCokcdHlFLep9cj9CIKa35ogWbMx0O7uyLt/rlEe8O'; //''664ca084ad19ca34f86ce956' $2a$10$DHNAnAemgw/9O9GAoUu1D.sJe5WCn8YsoLQiyWLP1V31e2JsR8W/y';
-        
-            // Fonction pour convertir le tableau HTML en objet JSON
-            function tableToJson(table) {
+
+            const binId = '67cafb77e41b4d34e4a26a54'; // Remplace par ton Bin ID
+            const secretKey = '$2a$10$1wcPrsONWvM/A2xW8x6Kq.hyiX8POktJDEbBGw97yms5Fty7XYpAS'; // Remplace par ta X-Master-Key
+
+            // Fonction pour convertir le tableau en JSON
+            function tableToJson() {
                 const data = [];
                 const headers = [];
-                for (let i = 0; i < table.rows[0].cells.length; i++) {
-                    headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase();
-                }
-                for (let i = 1; i < table.rows.length; i++) {
-                    const tableRow = table.rows[i];
+                const rows = table.querySelectorAll("tbody tr");
+
+                // Récupérer les en-têtes du tableau
+                table.querySelectorAll("thead th").forEach((th, index) => {
+                    headers[index] = th.textContent.trim().toLowerCase();
+                });
+
+                // Récupérer les données du tableau
+                rows.forEach(row => {
                     const rowData = {};
-                    for (let j = 0; j < tableRow.cells.length; j++) {
-                        rowData[headers[j]] = tableRow.cells[j].innerHTML;
-                    }
+                    row.querySelectorAll("td").forEach((td, index) => {
+                        rowData[headers[index]] = td.textContent.trim();
+                    });
                     data.push(rowData);
-                }
+                });
+
                 return data;
             }
-        
-            // Fonction pour sauvegarder les données sur JSON Bin
+
+            // Fonction pour sauvegarder les données sur JSONBin
             function saveToJsonBin(data) {
                 fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
                     method: 'PUT',
@@ -52,30 +60,40 @@
                         'Content-Type': 'application/json',
                         'X-Master-Key': secretKey
                     },
-                    body: JSON.stringify({tableData: data})
-                }).then(response => response.json())
-                  .then(json => console.log('Données enregistrées:', json))
-                  .catch(error => console.error('Erreur:', error));
+                    body: JSON.stringify({ tableData: data })
+                })
+                .then(response => response.json())
+                .then(json => console.log('✅ Données enregistrées:', json))
+                .catch(error => console.error('❌ Erreur lors de l’enregistrement:', error));
             }
-        
-            // Fonction pour charger les données depuis JSON Bin
+
+            // Fonction pour charger les données depuis JSONBin
             function loadFromJsonBin() {
                 fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
                     method: 'GET',
                     headers: {
                         'X-Master-Key': secretKey
                     }
-                }).then(response => response.json())
-                  .then(json => {
-                      const data = json.record.tableData;
-                      populateTable(data);
-                  })
-                  .catch(error => console.error('Erreur de chargement des données:', error));
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Erreur HTTP: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(json => {
+                    console.log('📥 Données chargées:', json);
+                    if (json.record && json.record.tableData) {
+                        populateTable(json.record.tableData);
+                    }
+                })
+                .catch(error => console.error('❌ Erreur de chargement des données:', error));
             }
-        
-            // Fonction pour remplir le tableau avec les données chargées
+
+            // Fonction pour remplir le tableau avec les données
             function populateTable(data) {
-                tbody.innerHTML = '';
+                tbody.innerHTML = ''; // Réinitialiser le tableau
+
                 data.forEach(row => {
                     const tr = document.createElement('tr');
                     Object.values(row).forEach(cellData => {
@@ -87,16 +105,16 @@
                     tbody.appendChild(tr);
                 });
             }
-        
-            // Détection des modifications du tableau
+
+            // Détection des modifications et sauvegarde automatique
             table.addEventListener('input', () => {
-                const jsonData = tableToJson(table);
+                const jsonData = tableToJson();
                 saveToJsonBin(jsonData);
             });
-        
-            // Charger les données au chargement de la page
+
+            // Charger les données au démarrage
             loadFromJsonBin();
         });
     </script>
 </body>
-</html>        
+</html>
