@@ -96,6 +96,8 @@
         console.log('✅ Données enregistrées avec succès:', data);
         alert('Données mises à jour avec succès sur JSONbin.io');
         alert(`URL du bin: ${apiUrl}`); // Affiche l'URL du bin après l'upload
+        // Ouvrir l'URL dans une nouvelle fenêtre
+    window.open(`https://api.jsonbin.io/v3/b/${binId}`, '_blank');
     })
     .catch(error => {
         console.error('❌ Erreur lors de l’upload:', error);
