@@ -12,12 +12,12 @@
     </style>
 </head>
 <body>
-    <table id="myTable">
+    <table id="myTable" border="1">
         <thead>
             <tr>
-                <th contenteditable="true">Name</th>
-                <th contenteditable="true">Age</th>
-                <th contenteditable="true">Country</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Country</th>
             </tr>
         </thead>
         <tbody>
@@ -33,63 +33,77 @@
             </tr>
         </tbody>
     </table>
+
     <button id="exportBtn">Export to JSON</button>
     <textarea id="jsonOutput" readonly></textarea>
 
     <br>
-    <label for="apiUrl">JSONbin.io API URL:</label>
-    <input type="text" id="apiUrl" placeholder="https://api.jsonbin.io/v3/b/6655cae7e41b4d34e4fabe6fL">
+    <label for="binId">JSONBin.io Bin ID:</label>
+    <input type="text" id="binId" placeholder="Ex: 6655cae7e41b4d34e4fabe6f">
     <br>
-    <label for="apiKey">JSONbin.io API Key:</label>
-    <input type="text" id="apiKey" placeholder="$2a$10$DHNAnAemgw/9O9GAoUu1D.sJe5WCn8YsoLQiyWLP1V31e2JsR8W/y">
+    <label for="apiKey">JSONBin.io API Key:</label>
+    <input type="text" id="apiKey" placeholder="Votre X-Master-Key">
     <br>
     <button id="uploadBtn">Upload to JSONbin.io</button>
 
     <script>
-        document.getElementById('exportBtn').addEventListener('click', () => {
+        // Fonction pour exporter le tableau en JSON
+        function exportTableToJson() {
             const table = document.getElementById('myTable');
-            const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
             const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => {
                 const cells = Array.from(tr.querySelectorAll('td'));
                 const rowData = {};
                 cells.forEach((cell, index) => {
-                    rowData[headers[index]] = cell.textContent;
+                    rowData[headers[index]] = cell.textContent.trim();
                 });
                 return rowData;
             });
 
             const jsonString = JSON.stringify(rows, null, 2);
             document.getElementById('jsonOutput').value = jsonString;
-        });
+        }
 
-        document.getElementById('uploadBtn').addEventListener('click', () => {
-            const apiUrl = document.getElementById('apiUrl').value;
-            const apiKey = document.getElementById('apiKey').value;
+        // Fonction pour envoyer les données vers JSONBin.io
+        function uploadToJsonBin() {
+            const binId = document.getElementById('binId').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
             const jsonData = document.getElementById('jsonOutput').value;
 
-            if (!apiUrl || !apiKey) {
-                alert('https://api.jsonbin.io/v3/b/6655cae7e41b4d34e4fabe6fL || $2a$10$DHNAnAemgw/9O9GAoUu1D.sJe5WCn8YsoLQiyWLP1V31e2JsR8W/y.');
+            if (!binId || !apiKey) {
+                alert('Veuillez entrer un Bin ID et une API Key.');
                 return;
             }
 
+            const apiUrl = `https://api.jsonbin.io/v3/b/${binId}`;
+            console.log('Uploading to:', apiUrl);
+
             fetch(apiUrl, {
-                method: 'POST',
+                method: 'PUT', // Utiliser PUT pour mettre à jour un bin existant
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Master-Key': apiKey
                 },
                 body: jsonData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                console.log('Success:', data);
-                alert('Data successfully uploaded to JSONbin.io');
+                console.log('✅ Données enregistrées avec succès:', data);
+                alert('Données mises à jour avec succès sur JSONbin.io');
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while uploading the data.');
+                console.error('❌ Erreur lors de l’upload:', error);
+                alert('Une erreur est survenue lors de l’upload.');
             });
-        });
+        }
+
+        document.getElementById('exportBtn').addEventListener('click', exportTableToJson);
+        document.getElementById('uploadBtn').addEventListener('click', uploadToJsonBin);
     </script>
 </body>
 </html>
