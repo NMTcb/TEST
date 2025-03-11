@@ -99,7 +99,7 @@
                 return;
             }
 
-            fetch(apiUrl, {
+            fetch(`https://api.jsonbin.io/v3/b/${apiUrl}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -110,7 +110,7 @@
             .then(response => response.json())
             .then(data => {
                 alert('Données mises à jour avec succès !');
-                window.open(apiUrl, '_blank'); // Ouvre JSONBin dans un nouvel onglet
+                window.open(`https://api.jsonbin.io/v3/b/${apiUrl}`, '_blank'); // Ouvre JSONBin dans un nouvel onglet
             })
             .catch(error => {
                 console.error('Erreur:', error);
