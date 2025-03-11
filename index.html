@@ -3,118 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau avec Enregistrement Automatique</title>
+    <title>Importer un Excel et l'envoyer en JSON</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        #jsonOutput { width: 100%; height: 200px; }
+    </style>
 </head>
 <body>
-    <table id="dataTable" border="1">
+
+    <h2>Importer un fichier Excel</h2>
+    <input type="file" id="fileInput" accept=".xlsx, .xls">
+    <br><br>
+
+    <table id="myTable" border="1">
         <thead>
             <tr>
                 <th>Nom</th>
                 <th>Âge</th>
+                <th>Pays</th>
             </tr>
         </thead>
-        <tbody>
-            <tr>
-                <td contenteditable="true">Moi</td>
-                <td contenteditable="true">3</td>
-            </tr>
-        </tbody>
+        <tbody></tbody>
     </table>
 
+    <br>
+    <button id="exportBtn">Exporter en JSON</button>
+    <textarea id="jsonOutput" readonly></textarea>
+
+    <br>
+    <label for="apiUrl">JSONbin.io API URL:</label>
+    <input type="text" id="apiUrl" placeholder="https://api.jsonbin.io/v3/b/ton_bin_id">
+    <br>
+    <label for="apiKey">JSONbin.io API Key:</label>
+    <input type="text" id="apiKey" placeholder="Ta_clé_API">
+    <br>
+    <button id="uploadBtn">Envoyer à JSONbin.io</button>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const table = document.getElementById('dataTable');
-            const tbody = table.querySelector('tbody');
+        document.getElementById('fileInput').addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (!file) return;
 
-            const binId = '67cafab3acd3cb34a8f69de6'; // Remplace par ton Bin ID
-            const secretKey = '$2a$10$tUTBEySt/KWiCokcdHlFLep9cj9CIKa35ogWbMx0O7uyLt/rlEe8O'; // Remplace par ta X-Master-Key
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
 
-            // Fonction pour convertir le tableau en JSON
-            function tableToJson() {
-                const data = [];
-                const headers = [];
-                const rows = table.querySelectorAll("tbody tr");
+                const sheetName = workbook.SheetNames[0]; // Prend la première feuille
+                const sheet = workbook.Sheets[sheetName];
 
-                // Récupérer les en-têtes du tableau
-                table.querySelectorAll("thead th").forEach((th, index) => {
-                    headers[index] = th.textContent.trim().toLowerCase();
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 }); // Convertit en JSON brut
+                populateTable(jsonData);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function populateTable(data) {
+            const tbody = document.getElementById('myTable').querySelector('tbody');
+            tbody.innerHTML = '';
+
+            for (let i = 1; i < data.length; i++) { // Ignore la 1ère ligne (headers)
+                const row = document.createElement('tr');
+                for (let j = 0; j < data[i].length; j++) {
+                    const cell = document.createElement('td');
+                    cell.textContent = data[i][j] || ''; // Evite les valeurs "undefined"
+                    row.appendChild(cell);
+                }
+                tbody.appendChild(row);
+            }
+        }
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const table = document.getElementById('myTable');
+            const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => {
+                const cells = Array.from(tr.querySelectorAll('td'));
+                const rowData = {};
+                cells.forEach((cell, index) => {
+                    rowData[headers[index]] = cell.textContent;
                 });
-
-                // Récupérer les données du tableau
-                rows.forEach(row => {
-                    const rowData = {};
-                    row.querySelectorAll("td").forEach((td, index) => {
-                        rowData[headers[index]] = td.textContent.trim();
-                    });
-                    data.push(rowData);
-                });
-
-                return data;
-            }
-
-            // Fonction pour sauvegarder les données sur JSONBin
-            function saveToJsonBin(data) {
-                fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': secretKey
-                    },
-                    body: JSON.stringify({ tableData: data })
-                })
-                .then(response => response.json())
-                .then(json => console.log('✅ Données enregistrées:', json))
-                .catch(error => console.error('❌ Erreur lors de l’enregistrement:', error));
-            }
-
-            // Fonction pour charger les données depuis JSONBin
-            function loadFromJsonBin() {
-                fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Master-Key': secretKey
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Erreur HTTP: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(json => {
-                    console.log('📥 Données chargées:', json);
-                    if (json.record && json.record.tableData) {
-                        populateTable(json.record.tableData);
-                    }
-                })
-                .catch(error => console.error('❌ Erreur de chargement des données:', error));
-            }
-
-            // Fonction pour remplir le tableau avec les données
-            function populateTable(data) {
-                tbody.innerHTML = ''; // Réinitialiser le tableau
-
-                data.forEach(row => {
-                    const tr = document.createElement('tr');
-                    Object.values(row).forEach(cellData => {
-                        const td = document.createElement('td');
-                        td.contentEditable = 'true';
-                        td.textContent = cellData;
-                        tr.appendChild(td);
-                    });
-                    tbody.appendChild(tr);
-                });
-            }
-
-            // Détection des modifications et sauvegarde automatique
-            table.addEventListener('input', () => {
-                const jsonData = tableToJson();
-                saveToJsonBin(jsonData);
+                return rowData;
             });
 
-            // Charger les données au démarrage
-            loadFromJsonBin();
+            const jsonString = JSON.stringify(rows, null, 2);
+            document.getElementById('jsonOutput').value = jsonString;
+        });
+
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const jsonData = document.getElementById('jsonOutput').value;
+
+            if (!apiUrl || !apiKey) {
+                alert("Remplis l'URL et la clé API de JSONbin.io !");
+                return;
+            }
+
+            fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': apiKey
+                },
+                body: jsonData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Données mises à jour avec succès !');
+                window.open(apiUrl, '_blank'); // Ouvre JSONBin dans un nouvel onglet
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Problème lors de l’envoi des données.');
+            });
         });
     </script>
+
 </body>
 </html>
